@@ -124,7 +124,7 @@ not -(unary)
 ..
 < > <= >= ~= ==
 and
-or              low
+or               low
 */
 
 exp : NIL              { $$ = Node("exp", $1); }
