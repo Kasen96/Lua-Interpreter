@@ -114,6 +114,19 @@ explist : exp               { $$ = Node("explist", ""); $$.children.push_back($1
         | explist COMMA exp { $$ = $1; $$.children.push_back($3); }
         ;
 
+/*
+Operator Priority
+
+^                hign
+not -(unary)
+* / %
++ -
+..
+< > <= >= ~= ==
+and
+or              low
+*/
+
 exp : NIL              { $$ = Node("exp", $1); }
     | FALSE            { $$ = Node("exp", $1); }
     | TRUE             { $$ = Node("exp", $1); }
