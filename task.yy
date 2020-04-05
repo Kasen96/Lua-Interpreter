@@ -29,7 +29,8 @@
 %token QUIT 0 "end of file"
 
 %type <Node> chunk stat laststat block varlist explist functioncall exp namelist funcname funcbody var 
-             prefixexp function tableconstructor binop unop args parlist fieldlist field
+             prefixexp function tableconstructor unop args parlist fieldlist field
+%type <Node> exp_concat exp_or exp_and exp_lge exp_as exp_md exp_unop exp_pow exp_rest
 %type <std::string> optsemi fieldsep
 
 /* Follow the EBNF grammar of Lua. http://www.lua.org/manual/5.1/manual.html#8 */
@@ -125,20 +126,62 @@ not -(unary)
 < > <= >= ~= ==
 and
 or               low
+
 */
 
-exp : NIL              { $$ = Node("exp", $1); }
-    | FALSE            { $$ = Node("exp", $1); }
-    | TRUE             { $$ = Node("exp", $1); }
-    | NUMBER           { $$ = Node("exp", $1); }
-    | STRING           { $$ = Node("exp", ""); $$.children.push_back(Node("STRING", $1)); }
-    | TRIPLEDOTS       { $$ = Node("exp", ""); $$.children.push_back(Node("TRIPLEDOTS", $1)); }
-    | function         { $$ = $1; }
-    | prefixexp        { $$ = $1; }
-    | tableconstructor { $$ = $1; }
-    | exp binop exp    { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back($2); $$.children.push_back($3); }
-    | unop exp         { $$ = Node("exp", ""); $$.children.push_back($2); }
-    ;
+exp : exp_or { $$ = $1; }
+    ; 
+
+exp_or : exp_and           { $$ = $1; }
+       | exp_or OR exp_and { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+       ;
+
+exp_and : exp_lge             { $$ = $1; }
+        | exp_and AND exp_lge { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        ;
+
+exp_lge : exp_concat                     { $$ = $1; }
+        | exp_lge LESSTHAN exp_concat    { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        | exp_lge GREATTHAN exp_concat   { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        | exp_lge LESSEQUALS exp_concat  { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        | exp_lge GREATEQUALS exp_concat { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        | exp_lge NOTEQUALS exp_concat   { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        | exp_lge EQUALS exp_concat      { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        ;
+
+exp_concat : exp_as                   { $$ = $1; }
+           | exp_concat CONCAT exp_as { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+           ;
+
+exp_as : exp_md            { $$ = $1; }
+       | exp_as ADD exp_md { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+       | exp_as SUB exp_md { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+       ;
+
+exp_md : exp_unop            { $$ = $1; }
+       | exp_md MUL exp_unop { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+       | exp_md DIV exp_unop { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+       | exp_md MOD exp_unop { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+       ;
+
+exp_unop : exp_pow      { $$ = $1; }
+         | unop exp_pow { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back($2); }
+         ;
+
+exp_pow : exp_rest             { $$ = $1; }
+        | exp_pow POW exp_rest { $$ = Node("exp", ""); $$.children.push_back($1); $$.children.push_back(Node("binop", $2)); $$.children.push_back($3); }
+        ;
+
+exp_rest : NIL              { $$ = Node("exp", $1); }
+         | FALSE            { $$ = Node("exp", $1); }
+         | TRUE             { $$ = Node("exp", $1); }
+         | NUMBER           { $$ = Node("exp", $1); }
+         | STRING           { $$ = Node("exp", ""); $$.children.push_back(Node("STRING", $1)); }
+         | TRIPLEDOTS       { $$ = Node("exp", ""); $$.children.push_back(Node("TRIPLEDOTS", $1)); }
+         | function         { $$ = $1; }
+         | prefixexp        { $$ = $1; }
+         | tableconstructor { $$ = $1; }
+         ;
 
 prefixexp : var                         { $$ = $1; }
           | functioncall                { $$ = $1; }
@@ -184,23 +227,6 @@ field : LBRACKET exp RBRACKET ASSIGN exp { $$ = Node("field", ""); $$.children.p
 fieldsep : COMMA { /* empty */ }
          | SEMI  { /* empty */ }
          ;
-
-binop : ADD         { $$ = Node("binop", $1); }
-      | SUB         { $$ = Node("binop", $1); }
-      | MUL         { $$ = Node("binop", $1); }
-      | DIV         { $$ = Node("binop", $1); }
-      | POW         { $$ = Node("binop", $1); }
-      | MOD         { $$ = Node("binop", $1); }
-      | CONCAT      { $$ = Node("binop", $1); }
-      | LESSTHAN    { $$ = Node("binop", $1); }
-      | LESSEQUALS  { $$ = Node("binop", $1); }
-      | GREATTHAN   { $$ = Node("binop", $1); }
-      | GREATEQUALS { $$ = Node("binop", $1); }
-      | EQUALS      { $$ = Node("binop", $1); }
-      | NOTEQUALS   { $$ = Node("binop", $1); }
-      | AND         { $$ = Node("binop", $1); }
-      | OR          { $$ = Node("binop", $1); }
-      ;
 
 unop : SUB { $$ = Node("unop", $1); }
      | NOT { $$ = Node("unop", $1); }
