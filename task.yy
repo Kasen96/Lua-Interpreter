@@ -49,7 +49,7 @@ optsemi :      { /* empty */ }
 block : chunk { $$ = Node("block", ""); $$.children.push_back($1); }
       ;
 
-stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1); $$.children.push_back($3); }
+stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1); $$.children.push_back(Node("ASSIGN", $2)); $$.children.push_back($3); }
      | functioncall           { $$ = $1; }
      | DO block END           { $$ = Node("stat", ""); $$.children.push_back($2); }
      | WHILE exp DO block END { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
@@ -63,6 +63,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | FOR NAME ASSIGN exp COMMA exp DO block END { 
          $$ = Node("stat", ""); 
          $$.children.push_back(Node("NAME", $2)); 
+         $$.children.push_back(Node("ASSIGN", $3));
          $$.children.push_back($4); 
          $$.children.push_back($6); 
          $$.children.push_back($8); 
@@ -70,6 +71,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | FOR NAME ASSIGN exp COMMA exp COMMA exp DO block END {
          $$ = Node("stat", ""); 
          $$.children.push_back(Node("NAME", $2)); 
+         $$.children.push_back(Node("ASSIGN", $3));
          $$.children.push_back($4); 
          $$.children.push_back($6); 
          $$.children.push_back($8); 
@@ -85,7 +87,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | FUNCTION funcname funcbody    { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($3); }
      | LOCAL FUNCTION NAME funcbody  { $$ = Node("stat", ""); $$.children.push_back(Node("NAME", $3)); $$.children.push_back($4); }
      | LOCAL namelist                { $$ = Node("stat", ""); $$.children.push_back($2); }
-     | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
+     | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $3)); $$.children.push_back($4); }
      ; 
 
 laststat : RETURN         { /* empty */ }
@@ -219,8 +221,8 @@ fieldlist : field                    { $$ = Node("fieldlist", ""); $$.children.p
           | fieldlist fieldsep       { $$ = $1; }
           ;
 
-field : LBRACKET exp RBRACKET ASSIGN exp { $$ = Node("field", ""); $$.children.push_back($2); $$.children.push_back($5); }
-      | NAME ASSIGN exp                  { $$ = Node("field", ""); $$.children.push_back(Node("NAME", $1)); $$.children.push_back($3); }
+field : LBRACKET exp RBRACKET ASSIGN exp { $$ = Node("field", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $4)); $$.children.push_back($5); }
+      | NAME ASSIGN exp                  { $$ = Node("field", ""); $$.children.push_back(Node("NAME", $1)); $$.children.push_back(Node("ASSIGN", $2)); $$.children.push_back($3); }
       | exp                              { $$ = $1; }
       ;
 
