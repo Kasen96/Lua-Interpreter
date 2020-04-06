@@ -32,8 +32,10 @@ void Node::drawDigraph(int index, string &data)
     if (!children.empty())
     {
         // index [label="tag"];
-        // data += std::to_string(index) + " [label=\"" + tag + ":" + value + "\"];\n";
-        data += std::to_string(index) + " [label=\"" + tag + "\"];\n";
+        if (value != "")
+            data += std::to_string(index) + " [label=\"" + tag + ":" + value + "\"];\n";
+        else
+            data += std::to_string(index) + " [label=\"" + tag + "\"];\n";
         for (auto i = children.begin(); i != children.end(); i++)
         {
             // node points to its children
