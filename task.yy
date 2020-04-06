@@ -56,7 +56,8 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | WHILE exp DO block END { $$ = Node("stat", "WHILE"); $$.children.push_back($2); $$.children.push_back($4); }
      | REPEAT block UNTIL exp { $$ = Node("stat", "REPEAT"); $$.children.push_back($2); $$.children.push_back($4); }
      | ifstat                 { $$ = $1; }
-
+     
+     /* for loop */
      | FOR NAME ASSIGN exp COMMA exp DO block END { 
          $$ = Node("stat", "FOR");
          $$.children.push_back(Node("NAME", $2)); 
@@ -87,6 +88,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $3)); $$.children.push_back($4); }
      ; 
 
+/* if loop */
 ifstat : thenstat END              { $$ = Node("stat", "IF"); $$.children.push_back($1); }
        | thenstat ELSE block END   { $$ = Node("stat", "IF"); $$.children.push_back($1); $$.children.push_back($3); }
        ;
@@ -133,7 +135,6 @@ not -(unary)
 < > <= >= ~= ==
 and
 or               low
-
 */
 
 exp : exp_or { $$ = $1; }
@@ -234,6 +235,8 @@ field : LBRACKET exp RBRACKET ASSIGN exp { $$ = Node("field", ""); $$.children.p
 fieldsep : COMMA { /* empty */ }
          | SEMI  { /* empty */ }
          ;
+
+/* put binop into exp for precedences */
 
 unop : SUB { $$ = Node("unop", $1); }
      | NOT { $$ = Node("unop", $1); }
