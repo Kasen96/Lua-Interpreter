@@ -55,7 +55,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | DO block END           { $$ = Node("stat", ""); $$.children.push_back($2); }
      | WHILE exp DO block END { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
      | REPEAT block UNTIL exp { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
-     | ifstat { $$ = $1; }
+     | ifstat                 { $$ = $1; }
 
      | FOR NAME ASSIGN exp COMMA exp DO block END { 
          $$ = Node("stat", ""); 
