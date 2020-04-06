@@ -30,6 +30,7 @@
 
 %type <Node> chunk stat laststat block varlist explist functioncall exp namelist funcname funcbody var 
              prefixexp function tableconstructor unop args parlist fieldlist field
+%type <Node> ifstat
 %type <Node> exp_concat exp_or exp_and exp_lge exp_as exp_md exp_unop exp_pow exp_rest
 %type <std::string> optsemi fieldsep
 
@@ -54,11 +55,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | DO block END           { $$ = Node("stat", ""); $$.children.push_back($2); }
      | WHILE exp DO block END { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
      | REPEAT block UNTIL exp { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
-
-     | IF exp THEN block          { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
-     | stat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
-     | stat END                   { $$ = $1; }
-     | stat ELSE block END        { $$ = $1; $$.children.push_back($3); }
+     | ifstat { $$ = $1; }
 
      | FOR NAME ASSIGN exp COMMA exp DO block END { 
          $$ = Node("stat", ""); 
@@ -89,6 +86,12 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | LOCAL namelist                { $$ = Node("stat", ""); $$.children.push_back($2); }
      | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $3)); $$.children.push_back($4); }
      ; 
+
+ifstat : IF exp THEN block            { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
+       | ifstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
+       | ifstat END                   { $$ = $1; }
+       | ifstat ELSE block END        { $$ = $1; $$.children.push_back($3); }
+       ;
 
 laststat : RETURN         { /* empty */ }
          | RETURN explist { $$ = Node("laststat", ""); $$.children.push_back($2); }
