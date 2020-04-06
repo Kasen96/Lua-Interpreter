@@ -87,11 +87,11 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $3)); $$.children.push_back($4); }
      ; 
 
-ifstat : thenstat END              { $$ = Node("ifstat", ""); $$.children.push_back($1); }
-       | thenstat ELSEIF block END { $$ = Node("ifstat", ""); $$.children.push_back($1); $$.children.push_back($3); }
+ifstat : thenstat END              { $$ = Node("stat", "IF"); $$.children.push_back($1); }
+       | thenstat ELSE block END   { $$ = Node("stat", "IF"); $$.children.push_back($1); $$.children.push_back($3); }
        ;
 
-thenstat : IF exp THEN block              { $$ = Node("thenstat", ""); $$.children.push_back($2); $$.children.push_back($4); }
+thenstat : IF exp THEN block              { $$ = Node("stat(then)", ""); $$.children.push_back($2); $$.children.push_back($4); }
          | thenstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
          ;
 
