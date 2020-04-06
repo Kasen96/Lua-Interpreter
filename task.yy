@@ -52,13 +52,13 @@ block : chunk { $$ = Node("block", ""); $$.children.push_back($1); }
 
 stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1); $$.children.push_back(Node("ASSIGN", $2)); $$.children.push_back($3); }
      | functioncall           { $$ = $1; }
-     | DO block END           { $$ = Node("stat", ""); $$.children.push_back($2); }
-     | WHILE exp DO block END { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
-     | REPEAT block UNTIL exp { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
+     | DO block END           { $$ = Node("stat", "DO"); $$.children.push_back($2); }
+     | WHILE exp DO block END { $$ = Node("stat", "WHILE"); $$.children.push_back($2); $$.children.push_back($4); }
+     | REPEAT block UNTIL exp { $$ = Node("stat", "REPEAT"); $$.children.push_back($2); $$.children.push_back($4); }
      | ifstat                 { $$ = $1; }
 
      | FOR NAME ASSIGN exp COMMA exp DO block END { 
-         $$ = Node("stat", ""); 
+         $$ = Node("stat", "FOR");
          $$.children.push_back(Node("NAME", $2)); 
          $$.children.push_back(Node("ASSIGN", $3));
          $$.children.push_back($4); 
@@ -66,7 +66,7 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
          $$.children.push_back($8); 
         }
      | FOR NAME ASSIGN exp COMMA exp COMMA exp DO block END {
-         $$ = Node("stat", ""); 
+         $$ = Node("stat", "FOR");
          $$.children.push_back(Node("NAME", $2)); 
          $$.children.push_back(Node("ASSIGN", $3));
          $$.children.push_back($4); 
@@ -75,28 +75,28 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
          $$.children.push_back($10); 
         }
      | FOR namelist IN explist DO block END { 
-         $$ = Node("stat", ""); 
+         $$ = Node("stat", "FOR");
          $$.children.push_back($2); 
          $$.children.push_back($4); 
          $$.children.push_back($6); 
         }
 
-     | FUNCTION funcname funcbody    { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($3); }
-     | LOCAL FUNCTION NAME funcbody  { $$ = Node("stat", ""); $$.children.push_back(Node("NAME", $3)); $$.children.push_back($4); }
+     | FUNCTION funcname funcbody    { $$ = Node("stat", "FUNCTION"); $$.children.push_back($2); $$.children.push_back($3); }
+     | LOCAL FUNCTION NAME funcbody  { $$ = Node("stat", "FUNCTION"); $$.children.push_back(Node("NAME", $3)); $$.children.push_back($4); }
      | LOCAL namelist                { $$ = Node("stat", ""); $$.children.push_back($2); }
      | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $3)); $$.children.push_back($4); }
      ; 
 
-ifstat : thenstat END              { $$ = Node("stat", ""); $$.children.push_back($1); }
-       | thenstat ELSEIF block END { $$ = Node("stat", ""); $$.children.push_back($1); $$.children.push_back($3); }
+ifstat : thenstat END              { $$ = Node("ifstat", ""); $$.children.push_back($1); }
+       | thenstat ELSEIF block END { $$ = Node("ifstat", ""); $$.children.push_back($1); $$.children.push_back($3); }
        ;
 
-thenstat : IF exp THEN block              { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
+thenstat : IF exp THEN block              { $$ = Node("thenstat", ""); $$.children.push_back($2); $$.children.push_back($4); }
          | thenstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
          ;
 
 laststat : RETURN         { /* empty */ }
-         | RETURN explist { $$ = Node("laststat", ""); $$.children.push_back($2); }
+         | RETURN explist { $$ = Node("laststat", "RETURN"); $$.children.push_back($2); }
          | BREAK          { /* empty */ }
          ;
         
@@ -182,7 +182,7 @@ exp_pow : exp_rest             { $$ = $1; }
 exp_rest : NIL              { $$ = Node("exp", $1); }
          | FALSE            { $$ = Node("exp", $1); }
          | TRUE             { $$ = Node("exp", $1); }
-         | NUMBER           { $$ = Node("exp", $1); }
+         | NUMBER           { $$ = Node("num_exp", $1); }
          | STRING           { $$ = Node("exp", ""); $$.children.push_back(Node("STRING", $1)); }
          | TRIPLEDOTS       { $$ = Node("exp", ""); $$.children.push_back(Node("TRIPLEDOTS", $1)); }
          | function         { $$ = $1; }
