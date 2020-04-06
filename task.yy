@@ -30,7 +30,7 @@
 
 %type <Node> chunk stat laststat block varlist explist functioncall exp namelist funcname funcbody var 
              prefixexp function tableconstructor unop args parlist fieldlist field
-%type <Node> ifstat
+%type <Node> ifstat thenstat
 %type <Node> exp_concat exp_or exp_and exp_lge exp_as exp_md exp_unop exp_pow exp_rest
 %type <std::string> optsemi fieldsep
 
@@ -87,11 +87,13 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      | LOCAL namelist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back(Node("ASSIGN", $3)); $$.children.push_back($4); }
      ; 
 
-ifstat : IF exp THEN block            { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
-       | ifstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
-       | ifstat END                   { $$ = $1; }
-       | ifstat ELSE block END        { $$ = $1; $$.children.push_back($3); }
+ifstat : thenstat END              { $$ = Node("stat", ""); $$.children.push_back($1); }
+       | thenstat ELSEIF block END { $$ = Node("stat", ""); $$.children.push_back($1); $$.children.push_back($3); }
        ;
+
+thenstat : IF exp THEN block              { $$ = Node("stat", ""); $$.children.push_back($2); $$.children.push_back($4); }
+         | thenstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
+         ;
 
 laststat : RETURN         { /* empty */ }
          | RETURN explist { $$ = Node("laststat", ""); $$.children.push_back($2); }
