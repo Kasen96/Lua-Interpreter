@@ -110,10 +110,15 @@ funcname : NAME                { $$ = Node("funcname", ""); $$.children.push_bac
 varlist : var               { $$ = Node("varlist", ""); $$.children.push_back($1); }
         | varlist COMMA var { $$ = $1; $$.children.push_back($3); }
         ;
-
+/*
 var : NAME                            { $$ = Node("var", ""); $$.children.push_back(Node("NAME", $1)); }
     | prefixexp LBRACKET exp RBRACKET { $$ = Node("var", ""); $$.children.push_back($1); $$.children.push_back($3); }
     | prefixexp DOT NAME              { $$ = Node("var", ""); $$.children.push_back($1); $$.children.push_back(Node("NAME", $3)); }
+    ;
+*/
+var : NAME                      { $$ = Node("var", ""); $$.children.push_back(Node("NAME", $1)); }
+    | var LBRACKET exp RBRACKET { $$ = $1; $$.children.push_back($3); }
+    | var DOT NAME              { $$ = $1; $$.children.push_back(Node("NAME", $3)); }
     ;
 
 namelist : NAME                { $$ = Node("namelist", ""); $$.children.push_back(Node("NAME", $1)); }
@@ -193,11 +198,15 @@ exp_rest : NIL              { $$ = Node("exp", $1); }
 
 prefixexp : var                         { $$ = $1; }
           | functioncall                { $$ = $1; }
-          | LPARENTHESE exp RPARENTHESE { $$ = Node("prefixexp", ""); $$.children.push_back($2); }
+          | LPARENTHESE exp RPARENTHESE { $$ = $2; }
           ;
-
+/*
 functioncall : prefixexp args            { $$ = Node("functioncall", ""); $$.children.push_back($1); $$.children.push_back($2); }
              | prefixexp COLON NAME args { $$ = Node("functioncall", ""); $$.children.push_back($1); $$.children.push_back(Node("NAME", $3)); $$.children.push_back($4); }
+             ;
+*/
+functioncall : var args            { $$ = Node("functioncall", ""); $$.children.push_back($1); $$.children.push_back($2); }
+             | var COLON NAME args { $$ = Node("functioncall", ""); $$.children.push_back($1); $$.children.push_back(Node("NAME", $3)); $$.children.push_back($4); }
              ;
 
 args : LPARENTHESE RPARENTHESE         { /* empty */ }
