@@ -97,9 +97,9 @@ thenstat : IF exp THEN block              { $$ = Node("stat(then)", ""); $$.chil
          | thenstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
          ;
 
-laststat : RETURN         { /* empty */ }
-         | RETURN explist { $$ = Node("laststat", "RETURN"); $$.children.push_back($2); }
-         | BREAK          { /* empty */ }
+laststat : RETURN explist { $$ = Node("laststat", "RETURN"); $$.children.push_back($2); }
+/*       | RETURN {  } */
+/*       | BREAK  {  } */
          ;
         
 funcname : NAME                { $$ = Node("funcname", ""); $$.children.push_back(Node("NAME", $1)); }
