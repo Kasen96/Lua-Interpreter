@@ -28,10 +28,10 @@
 
 %token QUIT 0 "end of file"
 
-%type <Node> chunk stat laststat block varlist explist functioncall exp namelist funcname funcbody var 
+%type <Node> chunk stat laststat block varlist explist functioncall namelist funcname funcbody var 
              prefixexp function tableconstructor unop args parlist fieldlist field
 %type <Node> ifstat thenstat
-%type <Node> exp_concat exp_or exp_and exp_lge exp_as exp_md exp_unop exp_pow exp_rest
+%type <Node> exp exp_or exp_and exp_lge exp_concat exp_as exp_md exp_unop exp_pow exp_rest
 %type <std::string> optsemi fieldsep
 
 /* Follow the EBNF grammar of Lua. http://www.lua.org/manual/5.1/manual.html#8 */
