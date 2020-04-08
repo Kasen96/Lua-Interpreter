@@ -2,7 +2,10 @@
 #define NODE_H
 
 #include <iostream>
+#include <iomanip>
 #include <list>
+#include <vector>
+#include <cmath>
 #include <string>
 
 using std::string;
@@ -20,6 +23,13 @@ class Node
 
         //void dump(int);
         void drawDigraph(int, string &);
+
+        Node run();
+
+    private:
+        Node getChildNode(int);
+        Node print(Node);
+        double getArgsNum(Node);
 };
 
 #endif

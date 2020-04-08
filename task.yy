@@ -189,7 +189,7 @@ exp_rest : NIL              { $$ = Node("exp", $1); }
          | FALSE            { $$ = Node("exp", $1); }
          | TRUE             { $$ = Node("exp", $1); }
          | NUMBER           { $$ = Node("num_exp", $1); }
-         | STRING           { $$ = Node("exp", ""); $$.children.push_back(Node("STRING", $1)); }
+         | STRING           { $$ = Node("STRING", $1); }
          | TRIPLEDOTS       { $$ = Node("exp", ""); $$.children.push_back(Node("TRIPLEDOTS", $1)); }
          | function         { $$ = $1; }
          | prefixexp        { $$ = $1; }
@@ -210,9 +210,9 @@ functioncall : var args            { $$ = Node("functioncall", ""); $$.children.
              ;
 
 args : LPARENTHESE RPARENTHESE         { /* empty */ }
-     | LPARENTHESE explist RPARENTHESE { $$ = Node("args", ""); $$.children.push_back($2); }
+     | LPARENTHESE explist RPARENTHESE { $$ = $2; }
      | tableconstructor                { $$ = $1; }
-     | STRING                          { $$ = Node("args", ""); $$.children.push_back(Node("STRING", $1)); }
+     | STRING                          { $$ = Node("STRING", $1); }
      ;
 
 function : FUNCTION funcbody { $$ = Node("function", ""); $$.children.push_back($2); }

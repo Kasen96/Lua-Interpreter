@@ -34,5 +34,6 @@ int main(int argc, char* argv[])
     outfile << data << endl;
     outfile.close();
 
+    root.run();
     return 0;
 }
