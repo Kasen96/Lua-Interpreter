@@ -4,10 +4,10 @@ CC = g++
 OBJECT = int
 
 $(OBJECT): lex.yy.c task.tab.o main.cpp node.cpp
-	$(CC) task.tab.o lex.yy.c main.cpp node.cpp -o $(OBJECT)
+	$(CC) --std=c++11 task.tab.o lex.yy.c main.cpp node.cpp -o $(OBJECT)
 
 task.tab.o: task.tab.cc
-	$(CC) -c task.tab.cc
+	$(CC) --std=c++11 -c task.tab.cc
 
 task.tab.cc: task.yy
 	$(YACC) -d task.yy
