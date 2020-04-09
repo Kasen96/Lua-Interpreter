@@ -70,15 +70,16 @@ Node Node::run()
     }
     else if (tag == "functioncall")
     {
-        Node var_node = getChildNode(0);
-        if (var_node.getChildNode(0).value == "print")
+        Node var = getChildNode(0); // Name.value == "print"
+        if (var.getChildNode(0).value == "print")
         {
-            return print(getChildNode(1));
+            print(getChildNode(1)); //print(explist);
+            return Node("print", "success");
         }
     }
     else if (tag == "exp")
     {
-        // + = * / ^
+        // + - * / ^ %
         Node sec_node = getChildNode(1);
         if (sec_node.tag == "binop")
         {
@@ -110,18 +111,17 @@ Node Node::run()
 
 Node Node::getChildNode(int i)
 {
-    // using vector for time complexity
+    // using vector to reduce time complexity
     std::vector<Node> nodes { std::begin(children), std::end(children) }; // list initialization in c++11
     return nodes[i];
 }
 
-Node Node::print(Node node)
+void Node::print(Node node)
 {
     for(auto n : node.children)
     {
         cout << std::fixed << std::setprecision(1) << getArgsNum(n.run()) << endl;
     }
-    return Node();
 }
 
 double Node::getArgsNum(Node node)

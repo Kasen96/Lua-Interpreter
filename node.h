@@ -28,7 +28,7 @@ class Node
 
     private:
         Node getChildNode(int);
-        Node print(Node);
+        void print(Node);
         double getArgsNum(Node);
 };
 
