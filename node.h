@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <list>
 #include <vector>
+#include <unordered_map>
 #include <cmath>
 #include <string>
 
@@ -23,13 +24,14 @@ class Node
 
         //void dump(int);
         void drawDigraph(int, string &);
-
         Node run();
 
     private:
         Node getChildNode(int);
         void print(Node);
         double getArgsNum(Node);
+        void assign(Node, Node);
+        void store2Map(string, string);
 };
 
 #endif

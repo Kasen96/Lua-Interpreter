@@ -2,6 +2,10 @@
 
 // class Node
 
+// umap (variable, number)
+// unordered_map for fast search
+static std::unordered_map<string, string> umap;
+
 Node::Node() // Bison needs this
 {
     tag = "uninitialised";
@@ -57,9 +61,10 @@ void Node::drawDigraph(int index, string &data)
     }
 }
 
+// imperfect, not all parts need to return a node
 Node Node::run()
 {
-    if (tag == "chunk")
+    if (tag == "chunk" || tag == "explist" || tag == "varlist")
     {
         Node result;
         for(auto i = children.begin(); i != children.end(); ++i)
@@ -70,12 +75,25 @@ Node Node::run()
     }
     else if (tag == "functioncall")
     {
-        Node var = getChildNode(0); // Name.value == "print"
-        if (var.getChildNode(0).value == "print")
+        Node var = getChildNode(0); 
+        if (var.getChildNode(0).value == "print") // NAME.value == "print"
         {
-            print(getChildNode(1)); //print(explist);
+            print(getChildNode(1)); // print(explist);
             return Node("print", "success");
         }
+    }
+    else if (tag == "stat")
+    {
+        Node sec_node = getChildNode(1);
+        if (sec_node.tag == "ASSIGN")
+        {
+            assign(getChildNode(0), getChildNode(2));
+            return Node("stat", "end");
+        }
+    }
+    else if (tag == "var")
+    {
+        return getChildNode(0); // return NAME
     }
     else if (tag == "exp")
     {
@@ -120,8 +138,9 @@ void Node::print(Node node)
 {
     for(auto n : node.children)
     {
-        cout << std::fixed << std::setprecision(1) << getArgsNum(n.run()) << endl;
+        cout << std::fixed << std::setprecision(1) << getArgsNum(n.run()) << " ";
     }
+    cout << endl;
 }
 
 double Node::getArgsNum(Node node)
@@ -131,5 +150,31 @@ double Node::getArgsNum(Node node)
     {
         result = node.value;
     }
+    else if (node.tag == "NAME")
+    {
+        auto iterator = umap.find(node.value);
+        result = iterator -> second;
+    }
     return std::stod(result);
+}
+
+void Node::assign(Node varlist, Node explist)
+{
+    if (varlist.children.size() == 1)
+    {
+        store2Map(varlist.run().value, explist.run().value); // (x | y | z, number)
+    }
+}
+
+void Node::store2Map(string key, string value)
+{
+    auto iterator = umap.find(key);
+    if (iterator == umap.end())
+    {
+        umap.insert({key, value});
+    }
+    else // if key exists, update value
+    {
+        iterator->second = value;
+    }
 }
