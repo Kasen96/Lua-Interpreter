@@ -132,7 +132,7 @@ explist : exp               { $$ = Node("explist", ""); $$.children.push_back($1
 /*
 Operator Priority
 
-^                hign
+^                high
 not -(unary)
 * / %
 + -
