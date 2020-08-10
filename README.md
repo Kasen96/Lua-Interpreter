@@ -1,4 +1,5 @@
-# Simple Lua Interpreter
+Simple Lua Interpreter
+======
 
 An imperfect Lua parser and interpreter.
 
