@@ -1,7 +1,7 @@
 LEX = flex
 YACC = bison
 CC = g++
-OBJECT = int
+OBJECT = parse
 
 $(OBJECT): lex.yy.c task.tab.o main.cpp node.cpp
 	$(CC) --std=c++11 task.tab.o lex.yy.c main.cpp node.cpp -o $(OBJECT)
