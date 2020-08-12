@@ -7,6 +7,13 @@ Follow the [EBNF](http://www.lua.org/manual/5.1/manual.html#8) grammar of Lua 5.
 
 Code snippets for testing are in the folder of *tests* .
 
+# Environment
+
+1. OS : Ubuntu 18.04
+2. graphviz 2.40.1 : `apt-get install graphviz`
+3. flex 2.6.4 : `apt-get install flex`
+4. bison 3.0.4 : `apt-get install bison`
+
 # How to use & Commands
 
 1. `make`
