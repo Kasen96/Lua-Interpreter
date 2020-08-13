@@ -13,6 +13,7 @@ Code snippets for testing are in the folder of *tests* .
 2. graphviz 2.40.1 : `apt-get install graphviz`
 3. flex 2.6.4 : `apt-get install flex`
 4. bison 3.0.4 : `apt-get install bison`
+5. gcc 7.5.0 : `apt-get install build-essential`
 
 # How to use & Commands
 
