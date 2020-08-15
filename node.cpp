@@ -61,7 +61,7 @@ void Node::drawDigraph(int index, string &data)
     }
 }
 
-// imperfect, not all parts need to return a node
+// bad design, not all parts need to return a node
 Node Node::run()
 {
     if (tag == "chunk" || tag == "explist" || tag == "varlist")
@@ -79,7 +79,7 @@ Node Node::run()
         if (var.getChildNode(0).value == "print") // NAME.value == "print"
         {
             print(getChildNode(1)); // print(explist);
-            return Node("print", "success");
+            return Node("print", "end");
         }
     }
     else if (tag == "stat")
