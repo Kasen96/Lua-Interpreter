@@ -64,7 +64,7 @@ void Node::drawDigraph(int index, string &data)
 // bad design, not all parts need to return a node
 Node Node::run()
 {
-    if (tag == "chunk" || tag == "explist" || tag == "varlist")
+    if (tag == "chunk" || tag == "explist" || tag == "varlist" || tag == "block")
     {
         Node result;
         for(auto i = children.begin(); i != children.end(); ++i)
@@ -81,14 +81,45 @@ Node Node::run()
             print(getChildNode(1)); // print(explist);
             return Node("print", "end");
         }
+        else if (var.getChildNode(0).value == "io" && var.getChildNode(1).value == "read") // io.read()
+        {
+            Node explist_child = getChildNode(1).getChildNode(0); // getChildNode(1) == explist; explist -> STRING
+            if (explist_child.value == "*number" || explist_child.value == "*n") // io.read("*number"||"*n") read a number
+            {
+                return io_read();
+            }
+            // io.read("*a"), io.read("*l") ...
+        }
+        else if (var.getChildNode(0).value == "io" && var.getChildNode(1).value == "write") // io.write()
+        {
+            Node explist_child = getChildNode(1).getChildNode(0); // getChildNode(1) == explist
+            return io_write(explist_child);
+        }
     }
     else if (tag == "stat")
     {
-        Node sec_node = getChildNode(1);
-        if (sec_node.tag == "ASSIGN")
+        if (value == "FOR") // for loop
         {
-            assign(getChildNode(0), getChildNode(2));
-            return Node("stat", "end");
+            // omit getChildNode(1).tag == "ASSIGN"
+            store2Map(getChildNode(0).value, getChildNode(2).value); // store i = ?;
+            double i = getArgsNum(getChildNode(0));
+            double n = getArgsNum(getChildNode(3).getChildNode(0)); // var -> NAME
+            do
+            {
+                getChildNode(4).run();
+                ++i;
+                store2Map(getChildNode(0).value, std::to_string(i)); // update i
+            } while ( n + 1 - i > 0 );
+            return Node("stat:FOR", "end");
+        }
+        else // common assign stat
+        {
+            Node sec_node = getChildNode(1);
+            if (sec_node.tag == "ASSIGN")
+            {
+                assign(getChildNode(0), getChildNode(2));
+                return Node("stat", "end");
+            }
         }
     }
     else if (tag == "var")
@@ -136,11 +167,18 @@ Node Node::getChildNode(int i)
 
 void Node::print(Node node)
 {
-    for(auto n : node.children)
+    if (node.tag == "STRING")
     {
-        cout << std::fixed << std::setprecision(1) << getArgsNum(n.run()) << " ";
+        cout << node.value << endl;
     }
-    cout << endl;
+    else
+    {
+        for(auto n : node.children)
+        {
+            cout << std::fixed << std::setprecision(1) << getArgsNum(n.run()) << " ";
+        }
+        cout << endl;
+    }
 }
 
 double Node::getArgsNum(Node node)
@@ -177,4 +215,33 @@ void Node::store2Map(string key, string value)
     {
         iterator->second = value;
     }
+}
+
+Node Node::io_read()
+{
+    string value;
+    getline(std::cin, value);
+    try
+    {
+        string val = std::to_string(std::stoi(value)); // e.g. "3.14" -> "3"
+        return Node("io_read", val);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        exit(-1);
+    }
+}
+
+Node Node::io_write(Node node)
+{
+    if (node.tag == "STRING")
+    {
+        cout << node.value;
+    }
+    else // var -> NAME
+    {
+        cout << getArgsNum(node.getChildNode(0));
+    }
+    return Node("io_write", "end");
 }
