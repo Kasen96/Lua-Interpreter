@@ -112,6 +112,19 @@ Node Node::run()
             } while ( n + 1 - i > 0 );
             return Node("stat:FOR", "end");
         }
+        else if (value == "IF")
+        {
+            // first node is exp
+            string temp = getChildNode(0).run().value;
+            if (temp == "true")
+            {
+                return getChildNode(1).getChildNode(0).run();
+            }
+            else
+            {
+                return Node("stat:IF", "end");
+            }           
+        }
         else // common assign stat
         {
             Node sec_node = getChildNode(1);
@@ -130,7 +143,14 @@ Node Node::run()
     {
         // + - * / ^ %
         Node sec_node = getChildNode(1);
-        if (sec_node.tag == "binop")
+        if (sec_node.tag == "binop" && sec_node.value == "==")
+        {
+            double left = getArgsNum(getChildNode(0).run());
+            double right = getArgsNum(getChildNode(2).run());
+            string result = (std::fabs(left - right) < 0.001) ? "true" : "false";
+            return Node("exp", result);
+        }
+        else if (sec_node.tag == "binop")
         {
             double left = getArgsNum(getChildNode(0).run());
             double right = getArgsNum(getChildNode(2).run());
@@ -241,7 +261,7 @@ Node Node::io_write(Node node)
     }
     else // var -> NAME
     {
-        cout << getArgsNum(node.getChildNode(0));
+        cout << std::fixed << std::setprecision(1) << getArgsNum(node.getChildNode(0));
     }
     return Node("io_write", "end");
 }

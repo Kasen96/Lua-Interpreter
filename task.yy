@@ -89,11 +89,11 @@ stat : varlist ASSIGN explist { $$ = Node("stat", ""); $$.children.push_back($1)
      ; 
 
 /* if loop */
-ifstat : thenstat END              { $$ = Node("stat", "IF"); $$.children.push_back($1); }
-       | thenstat ELSE block END   { $$ = Node("stat", "IF"); $$.children.push_back($1); $$.children.push_back($3); }
+ifstat : thenstat END              { $$ = $1; }
+       | thenstat ELSE block END   { $$ = $1; $$.children.push_back($3); }
        ;
 
-thenstat : IF exp THEN block              { $$ = Node("stat(then)", ""); $$.children.push_back($2); $$.children.push_back($4); }
+thenstat : IF exp THEN block              { $$ = Node("stat", "IF"); $$.children.push_back($2); $$.children.push_back($4); }
          | thenstat ELSEIF exp THEN block { $$ = $1; $$.children.push_back($3); $$.children.push_back($5); }
          ;
 
