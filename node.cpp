@@ -4,7 +4,7 @@
 
 // umap (variable, number)
 // unordered_map for fast search
-static std::unordered_map<string, string> umap;
+static std::unordered_map<string, Node> umap;
 
 Node::Node() // Bison needs this
 {
@@ -101,14 +101,14 @@ Node Node::run()
         if (value == "FOR") // for loop
         {
             // omit getChildNode(1).tag == "ASSIGN"
-            store2Map(getChildNode(0).value, getChildNode(2).value); // store i = ?;
+            store2Map(getChildNode(0).value, getChildNode(2)); // store i = ?;
             double i = getArgsNum(getChildNode(0));
             double n = getArgsNum(getChildNode(3).getChildNode(0)); // var -> NAME
             do
             {
                 getChildNode(4).run();
                 ++i;
-                store2Map(getChildNode(0).value, std::to_string(i)); // update i
+                store2Map(getChildNode(0).value, Node("num_exp", std::to_string(i))); // update i
             } while ( n + 1 - i > 0 );
             return Node("stat:FOR", "end");
         }
@@ -147,8 +147,8 @@ Node Node::run()
         {
             double left = getArgsNum(getChildNode(0).run());
             double right = getArgsNum(getChildNode(2).run());
-            string result = (std::fabs(left - right) < 0.001) ? "true" : "false";
-            return Node("exp", result);
+            string result = (std::fabs(left - right) < 0.000001) ? "true" : "false"; // ==, floating point comparison
+            return Node("exp==", result);
         }
         else if (sec_node.tag == "binop")
         {
@@ -210,8 +210,8 @@ double Node::getArgsNum(Node node)
     }
     else if (node.tag == "NAME")
     {
-        auto iterator = umap.find(node.value);
-        result = iterator -> second;
+        auto iterator = umap.find(node.value); // node.value is the variable name, e.g. NAME -> x, node.value is x
+        result = (iterator -> second).value; // value is the specific number the variable has. e.g. {x, Node("num_exp", "1")} The value is 1.
     }
     return std::stod(result);
 }
@@ -220,20 +220,20 @@ void Node::assign(Node varlist, Node explist)
 {
     if (varlist.children.size() == 1)
     {
-        store2Map(varlist.run().value, explist.run().value); // (x | y | z, number)
+        store2Map(varlist.run().value, explist.run()); // (x | y | z, number)
     }
 }
 
-void Node::store2Map(string key, string value)
+void Node::store2Map(string key, Node node)
 {
     auto iterator = umap.find(key);
     if (iterator == umap.end())
     {
-        umap.insert({key, value});
+        umap.insert({key, node});
     }
     else // if key exists, update value
     {
-        iterator->second = value;
+        iterator->second = node;
     }
 }
 

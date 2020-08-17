@@ -31,7 +31,7 @@ class Node
         void print(Node);
         double getArgsNum(Node);
         void assign(Node, Node);
-        void store2Map(string, string);
+        void store2Map(string, Node);
         Node io_read();
         Node io_write(Node);
 };
