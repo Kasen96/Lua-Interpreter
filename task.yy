@@ -117,7 +117,7 @@ var : NAME                            { $$ = Node("var", ""); $$.children.push_b
     ;
 */
 var : NAME                      { $$ = Node("var", ""); $$.children.push_back(Node("NAME", $1)); }
-    | var LBRACKET exp RBRACKET { $$ = $1; $$.children.push_back($3); }
+    | var LBRACKET exp RBRACKET { $$ = Node("var", "BRACKET"); $$.children.push_back($1); $$.children.push_back($3); }
     | var DOT NAME              { $$ = $1; $$.children.push_back(Node("NAME", $3)); }
     ;
 

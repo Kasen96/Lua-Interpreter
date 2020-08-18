@@ -103,7 +103,15 @@ Node Node::run()
             // omit getChildNode(1).tag == "ASSIGN"
             store2Map(getChildNode(0).value, getChildNode(2)); // store i = ?;
             double i = getArgsNum(getChildNode(0));
-            double n = getArgsNum(getChildNode(3).getChildNode(0)); // var -> NAME
+            double n; 
+            if (getChildNode(3).tag == "exp")
+            {
+                n = std::stod(getChildNode(3).run().value);
+            }
+            else // var -> NAME
+            {
+                n = getArgsNum(getChildNode(3).getChildNode(0));
+            }
             do
             {
                 getChildNode(4).run();
@@ -125,6 +133,14 @@ Node Node::run()
                 return Node("stat:IF", "end");
             }           
         }
+        else if (value == "REPEAT")
+        {
+            do 
+            {
+                getChildNode(0).run();
+            } while (getChildNode(1).run().value == "false");
+            return Node("stat:REPEAT", "end");
+        }
         else // common assign stat
         {
             Node sec_node = getChildNode(1);
@@ -137,44 +153,94 @@ Node Node::run()
     }
     else if (tag == "var")
     {
-        return getChildNode(0); // return NAME
+        if (value == "BRACKET")
+        {
+            Node list = readMap(getChildNode(0).run().value);
+            int index = std::stoi(std::to_string(getArgsNum(getChildNode(1).run())));
+            return list.getChildNode(index - 1); // lua for i stats by 1
+        }
+        else
+        {
+            return getChildNode(0); // return NAME   
+        }
     }
     else if (tag == "exp")
     {
-        // + - * / ^ %
-        Node sec_node = getChildNode(1);
-        if (sec_node.tag == "binop" && sec_node.value == "==")
+        if (value == "true" || value == "false")
         {
-            double left = getArgsNum(getChildNode(0).run());
-            double right = getArgsNum(getChildNode(2).run());
-            string result = (std::fabs(left - right) < 0.000001) ? "true" : "false"; // ==, floating point comparison
-            return Node("exp==", result);
+            return *this;
         }
-        else if (sec_node.tag == "binop")
+        else if (getChildNode(0).tag == "unop") // unary operator
         {
-            double left = getArgsNum(getChildNode(0).run());
-            double right = getArgsNum(getChildNode(2).run());
-            double result;
-            
-            if (sec_node.value == "+")
-                result = left + right;
-            if (sec_node.value == "-")
-                result = left - right;
-            if (sec_node.value == "*")
-                result = left * right;
-            if (sec_node.value == "/")
-                result = left / right;
-            if (sec_node.value == "^")
-                result = std::pow(left, right);
-            if (sec_node.value == "%")
-                result = std::fmod(left, right);
+            // #
+            if (getChildNode(0).value == "#")
+            {
+                Node list = readMap(getChildNode(1).run().value);
+                return Node("exp#", std::to_string(list.children.size()));
+            }
+        }
+        else if (getChildNode(1).tag == "binop") // binary operator
+        {
+            Node sec_node = getChildNode(1);
+            if (sec_node.value == "==")
+            {
+                if (getChildNode(2).value == "true" || getChildNode(2).value == "false") // var == bool
+                {
+                    string result = readMap(getChildNode(0).run().value).value == getChildNode(2).value ? "true" : "false";
+                    return Node("exp==", result);
+                }
+                else // num == num
+                {
+                    double left = getArgsNum(getChildNode(0).run());
+                    double right = getArgsNum(getChildNode(2).run());
+                    string result = (std::fabs(left - right) < 0.000001) ? "true" : "false"; // ==, floating point comparison
+                    return Node("exp==", result);
+                }
+            }
+            else if (sec_node.value == ">")
+            {
+                double left = getArgsNum(getChildNode(0).run());
+                double right = getArgsNum(getChildNode(2).run());
+                string result = left - right > 0.000001 ? "true" : "false";
+                return Node("exp>", result);
+            }
+            else if (sec_node.value == "<")
+            {
+                double left = getArgsNum(getChildNode(0).run());
+                double right = getArgsNum(getChildNode(2).run());
+                string result = right - left > 0.000001 ? "true" : "false";
+                return Node("exp<", result);
+            }
+            else // + - * / ^ %
+            {
+                double left = getArgsNum(getChildNode(0).run());
+                double right = getArgsNum(getChildNode(2).run());
+                double result;
 
-            return Node("num_exp", std::to_string(result));
+                if (sec_node.value == "+")
+                    result = left + right;
+                if (sec_node.value == "-")
+                    result = left - right;
+                if (sec_node.value == "*")
+                    result = left * right;
+                if (sec_node.value == "/")
+                    result = left / right;
+                if (sec_node.value == "^")
+                    result = std::pow(left, right);
+                if (sec_node.value == "%")
+                    result = std::fmod(left, right);
+
+                return Node("num_exp", std::to_string(result));
+            }
         }
     }
     else if (tag == "num_exp")
     {
         return *this;
+    }
+    else if (tag == "tableconstructor")
+    {
+        return getChildNode(0); // return fieldlist
     }
 }
 
@@ -218,10 +284,26 @@ double Node::getArgsNum(Node node)
 
 void Node::assign(Node varlist, Node explist)
 {
-    if (varlist.children.size() == 1)
+    int size = varlist.children.size();
+    if (size == 1)
     {
-        store2Map(varlist.run().value, explist.run()); // (x | y | z, number)
+        store2Map(varlist.run().value, explist.run()); // (x | y | z, Node("xxx", "number"))
     }
+    else // swap list node, the code below wastes too much time?
+    {
+        Node explist_result = Node();
+        for (auto &n : explist.children)
+        {
+            explist_result.children.push_back(n.run());
+        }
+        for (int i = 0; i < size; i++)
+        {
+            Node left = varlist.getChildNode(i);
+            Node right = explist_result.getChildNode(i);
+            int index = std::stoi(std::to_string(getArgsNum(left.getChildNode(1).run())));
+            store2Table(left.getChildNode(0).run().value, index - 1, right);
+        }  
+    }  
 }
 
 void Node::store2Map(string key, Node node)
@@ -235,6 +317,29 @@ void Node::store2Map(string key, Node node)
     {
         iterator->second = node;
     }
+}
+
+void Node::store2Table(string table_name, int index, Node value)
+{
+    Node table = readMap(table_name);
+    Node new_table = Node("fieldlist", "");
+    for (int i = 0; i < table.children.size(); i++)
+    {
+        if (index == i)
+        {
+            new_table.children.push_back(value);
+        }
+        else
+        {
+            new_table.children.push_back(table.getChildNode(i));
+        }       
+    }
+    store2Map(table_name, new_table);
+}
+
+Node Node::readMap(string key)
+{
+    return umap.find(key)->second;
 }
 
 Node Node::io_read()
