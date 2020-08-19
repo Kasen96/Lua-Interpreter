@@ -25,7 +25,7 @@ Code snippets for testing are in the folder of *tests* .
 
 # Notice
 
-* The parser has full functionality
+* The parser has full functionality, the results are in the svgs folder.
 * The interpreter works well on the test cases, it may encounter errors when trying other examples
 
 # License
