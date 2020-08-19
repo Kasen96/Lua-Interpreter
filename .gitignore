@@ -60,6 +60,7 @@ stack.hh
 lex.yy.c*
 
 *.svg
+!svgs/*.svg
 *.dot
 
 parse
