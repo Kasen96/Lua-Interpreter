@@ -92,8 +92,18 @@ Node Node::run()
         }
         else if (var.getChildNode(0).value == "io" && var.getChildNode(1).value == "write") // io.write()
         {
-            Node explist_child = getChildNode(1).getChildNode(0); // getChildNode(1) == explist
-            return io_write(explist_child);
+            for (auto &explist_child : getChildNode(1).children)
+            {
+                io_write(explist_child);
+            }
+            return Node("io.write", "end");
+        }
+        else // call function
+        {
+            string func_name = getChildNode(0).run().value;
+            Node func = readMap(func_name);
+            Node exp = getChildNode(1).getChildNode(0).run();
+            return callFunc(func, exp).run();
         }
     }
     else if (tag == "stat")
@@ -108,9 +118,9 @@ Node Node::run()
             {
                 n = std::stod(getChildNode(3).run().value);
             }
-            else // var -> NAME
+            else
             {
-                n = getArgsNum(getChildNode(3).getChildNode(0));
+                n = getArgsNum(getChildNode(3).run());
             }
             do
             {
@@ -126,12 +136,19 @@ Node Node::run()
             string temp = getChildNode(0).run().value;
             if (temp == "true")
             {
-                return getChildNode(1).getChildNode(0).run();
+                return getChildNode(1).run();
             }
             else
             {
-                return Node("stat:IF", "end");
-            }           
+                if (children.size() == 3)
+                {
+                    return getChildNode(2).run();
+                }
+                else
+                {
+                    return Node("stat:IF", "end");
+                }
+            }          
         }
         else if (value == "REPEAT")
         {
@@ -140,6 +157,12 @@ Node Node::run()
                 getChildNode(0).run();
             } while (getChildNode(1).run().value == "false");
             return Node("stat:REPEAT", "end");
+        }
+        else if (value == "FUNCTION")
+        {
+            string func_name = getChildNode(0).getChildNode(0).value;
+            store2Map(func_name, getChildNode(1)); // store funcbody
+            return Node("stat:FUNCTION", "end");
         }
         else // common assign stat
         {
@@ -241,6 +264,10 @@ Node Node::run()
     else if (tag == "tableconstructor")
     {
         return getChildNode(0); // return fieldlist
+    }
+    else if (tag == "laststat")
+    {
+        return getChildNode(0).run();
     }
 }
 
@@ -364,9 +391,39 @@ Node Node::io_write(Node node)
     {
         cout << node.value;
     }
-    else // var -> NAME
+    else
     {
-        cout << std::fixed << std::setprecision(1) << getArgsNum(node.getChildNode(0));
+        cout << std::fixed << std::setprecision(1) << getArgsNum(node.run());
     }
     return Node("io_write", "end");
+}
+
+Node Node::callFunc(Node funcbody, Node exp)
+{
+    string para_name = funcbody.getChildNode(0).getChildNode(0).value;
+    Node func_block = funcbody.getChildNode(1).getChildNode(0);
+    return replace(func_block, para_name, exp);
+}
+
+// replace the formal parameter with actual parameter
+Node Node::replace(Node target, string name, Node exp)
+{
+    if (target.children.size() > 0)
+    {
+        std::list<Node> temp;
+        for (auto &i : target.children)
+        {
+            temp.push_back(replace(i, name, exp));
+        }
+        target.children = temp;
+        return target;
+    }
+    else if (target.value == name)
+    {
+        return exp;
+    }
+    else
+    {
+        return target;
+    }
 }

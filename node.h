@@ -33,6 +33,8 @@ class Node
         void assign(Node, Node);
         void store2Map(string, Node);
         void store2Table(string, int, Node);
+        Node callFunc(Node, Node);
+        Node replace(Node, string, Node);
         Node readMap(string);
         Node io_read();
         Node io_write(Node);
