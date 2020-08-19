@@ -26,7 +26,7 @@ Code snippets for testing are in the folder of *tests* .
 # Notice
 
 * The parser has full functionality
-* The interpreter only works for e/d/c1/c2.lua
+* The interpreter works well on the test cases, it may encounter errors when trying other examples
 
 # License
 

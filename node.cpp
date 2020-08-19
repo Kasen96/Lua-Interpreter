@@ -61,7 +61,15 @@ void Node::drawDigraph(int index, string &data)
     }
 }
 
-// bad design, not all parts need to return a node
+/**
+ * the parser part.
+ * a really bad design,
+ * not every part needs to return a node,
+ * multi-level nesting of if - else,
+ * some parts are time-consuming,
+ * function is incomplete,
+ * ...
+*/
 Node Node::run()
 {
     if (tag == "chunk" || tag == "explist" || tag == "varlist" || tag == "block")
@@ -346,6 +354,7 @@ void Node::store2Map(string key, Node node)
     }
 }
 
+// bad design, time-consuming
 void Node::store2Table(string table_name, int index, Node value)
 {
     Node table = readMap(table_name);
@@ -406,6 +415,7 @@ Node Node::callFunc(Node funcbody, Node exp)
 }
 
 // replace the formal parameter with actual parameter
+// bad design, time-consuming
 Node Node::replace(Node target, string name, Node exp)
 {
     if (target.children.size() > 0)
